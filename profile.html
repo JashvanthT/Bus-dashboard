@@ -83,13 +83,13 @@
     <span class="material-icons back-btn" onclick="history.back()">arrow_back</span>
 
     <div class="profile-pic">
-      <img class="admin-avatar" src="kaml.jpg">
+      <img class="admin-avatar" id="adminAvatar" src="kaml.jpg" alt="Avatar" />
     </div>
 
   
     <div class="admin-name">
       <p class="name" style="color: rgb(19, 62, 205);"></p>
-    <div class="driver-info">SSN driver</div>
+    <div class="driver-info">Admin</div>
 
   
     <div class="stats">
@@ -112,6 +112,15 @@
     const nameElement = document.querySelector(".admin-name .name");
     if (nameElement) {
       nameElement.innerText = adminName;
+    }
+  </script>
+  <script>
+    // Load profile image from localStorage
+    const profileImage = localStorage.getItem("profileImage");
+    const avatarImg = document.getElementById("adminAvatar");
+  
+    if (profileImage && avatarImg) {
+      avatarImg.src = profileImage;
     }
   </script>
 </body>

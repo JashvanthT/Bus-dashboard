@@ -6,20 +6,111 @@
   <title>Bus Route Details</title>
   <link rel="stylesheet" href="style1.css" />
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body, html {
+      margin: 0;
+      padding: 0;
+      font-family: sans-serif;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .dashboard-container {
+      display: flex;
+      height: 100vh;
+      width: 100%;
+    }
+
+    .sidebar {
+      width: 200px;
+      background-color:white;
+      color: black;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 20px 0;
+      position: relative;
+    }
+
+    .top-menu, .bottom-menu {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .top-menu li, .bottom-menu li {
+      padding: 12px 20px;
+      cursor: pointer;
+    }
+
+    .top-menu li:hover, .bottom-menu li:hover {
+     color: #007bff;
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .navbar {
+      background-color: #ecf0f1;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .search-bar {
+      padding: 8px 12px;
+      width: 200px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    .admin-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .admin-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .admin-name p {
+      margin: 0;
+      font-size: 14px;
+    }
+
     .content-wrapper {
+      flex: 1;
       display: flex;
       gap: 20px;
+      padding: 20px;
+      overflow: hidden;
     }
 
     .map-box {
       flex: 2;
+      display: flex;
+      flex-direction: column;
     }
 
     .map-box iframe {
       width: 100%;
-      height: 500px;
-      border-radius: 12px;
+      height: 100%;
+      flex-grow: 1;
       border: none;
+      border-radius: 12px;
     }
 
     .info-section {
@@ -27,6 +118,7 @@
       display: flex;
       flex-direction: column;
       gap: 20px;
+      overflow-y: auto;
     }
 
     .card {
@@ -53,12 +145,40 @@
       list-style-type: disc;
       padding-left: 20px;
     }
+
+    #logoutBox {
+      display: none;
+      position: absolute;
+      left: 100%;
+      top: -50px;
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+      z-index: 999;
+    }
+
+    #logoutBox a {
+      display: inline-block;
+      margin-right: 12px;
+      margin-top: 5px;
+      padding: 8px;
+      background-color: #f2f2f2;
+      border-radius: 6px;
+      text-decoration: none;
+      color: black;
+      font-weight: bold;
+      transition: background-color 0.2s ease;
+    }
+
+    #logoutBox a:hover {
+      background-color: grey;
+    }
   </style>
 </head>
 <body>
   <div class="dashboard-container">
-
-
     <aside class="sidebar">
       <ul class="top-menu">
         <li onclick="location.href='index.html'">Dashboard</li>
@@ -67,20 +187,22 @@
       <ul class="bottom-menu">
         <li onclick="location.href='profile.html'">Profile</li>
         <li>Settings</li>
-        <li>Logout</li>
+        <li onclick="toggleLogoutBox()" style="position: relative;">
+          Logout
+          <div id="logoutBox">
+            <a href="#" onclick="confirmLogout()">Logout</a>
+            <a href="#" onclick="cancelLogout()">Cancel</a>
+          </div>
+        </li>
       </ul>
     </aside>
 
- 
     <div class="main-content">
-      
-      
       <div class="navbar">
         <input class="search-bar" placeholder="Search..." />
         <div class="admin-section">
           <span>🔔</span>
-
-          <img class="admin-avatar" src="kaml.jpg">
+          <img class="admin-avatar" id="adminAvatar" src="kaml.jpg" alt="Avatar" />
           <div class="admin-name">
             <p class="name"></p>
             <p class="role">Admin</p>
@@ -88,7 +210,6 @@
         </div>
       </div>
 
-      
       <div class="content-wrapper">
         <div class="map-box">
           <h1 id="routeTitle">Bus Route</h1>
@@ -98,19 +219,17 @@
         <div class="info-section">
           <div class="card">
             <h3>Driver Details:</h3>
-            <img src="bus 13.png" class="driver-img" alt="Driver"/>
+            
             <p><strong id="driverName">Driver Name</strong></p>
             <p id="driverPhone">Driver phone number</p>
           </div>
 
           <div class="card">
             <h3>Students Details:</h3>
-            <ul id="studentList">
-            </ul>
+            <ul id="studentList"></ul>
           </div>
         </div>
       </div>
-
     </div>
   </div>
 
@@ -118,13 +237,16 @@
     const busData = {
       "11": {
         route: "Nugambakkam",
-        map: "https://www.openstreetmap.org/export/embed.html?bbox=80.200%2C13.000%2C80.300%2C13.150&layer=mapnik",
         driver: { name: "Ravi Kumar", phone: "9344041840" },
         students: ["Haritu","Hari","Hari Vignesh"]
       },
-      "12": {
+      "29": {
         route: "T Nagar",
-        map: "https://www.openstreetmap.org/export/embed.html?bbox=80.200%2C13.000%2C80.300%2C13.150&layer=mapnik",
+        driver: { name: "Anbu", phone: "9643581223" },
+        students: ["Jashvanth","Adhi Shankar","Yuvan Shankar"]
+      },
+      "36": {
+        route: "T Nagar",
         driver: { name: "Anbu", phone: "9643581223" },
         students: ["Jashvanth","Adhi Shankar","Yuvan Shankar"]
       }
@@ -136,28 +258,59 @@
 
     if (data) {
       document.getElementById("routeTitle").innerText = `Bus Route ${busNo} - ${data.route}`;
-      document.getElementById("mapFrame").src = data.map;
+
+      let routeFile = "";
+      if (busNo === "11") routeFile = "route_1.html";
+      else if (busNo === "29") routeFile = "route_2.html";
+      else if (busNo === "36") routeFile = "route_3.html";
+      document.getElementById("mapFrame").src = routeFile;
+
       document.getElementById("driverName").innerText = data.driver.name;
       document.getElementById("driverPhone").innerText = data.driver.phone;
-
+    
       const ul = document.getElementById("studentList");
       data.students.forEach(s => {
         const li = document.createElement("li");
         li.innerText = s;
         ul.appendChild(li);
       });
-
-      const adminInitial = document.querySelector(".name").innerText.charAt(0);
-      document.querySelector(".admin-icon").innerText = adminInitial;
     }
-  </script>
-  <script>
+
     const adminName = localStorage.getItem("adminName") || "Admin";
     const nameElement = document.querySelector(".admin-name .name");
     if (nameElement) {
       nameElement.innerText = adminName;
     }
+
+    function toggleLogoutBox() {
+      const box = document.getElementById("logoutBox");
+      box.style.display = box.style.display === "block" ? "none" : "block";
+    }
+
+    function confirmLogout() {
+      window.location.href = "login.html";
+    }
+
+    function cancelLogout() {
+      window.location.href = "details.html";
+    }
+
+    document.addEventListener("click", function (e) {
+      const box = document.getElementById("logoutBox");
+      const logoutItem = box?.parentElement;
+      if (box && box.style.display === "block" && !logoutItem.contains(e.target)) {
+        box.style.display = "none";
+      }
+    });
   </script>
+  <script>
+    
+    const profileImage = localStorage.getItem("profileImage");
+    const avatarImg = document.getElementById("adminAvatar");
   
+    if (profileImage && avatarImg) {
+      avatarImg.src = profileImage;
+    }
+  </script>
 </body>
 </html>
